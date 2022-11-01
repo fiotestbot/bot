@@ -13,10 +13,15 @@ fi
 BRANCH="$1"
 REF="$2"
 DIR=fio-${BRANCH}
+CANONICAL=https://github.com/axboe/fio.git
+DEST=(git@github.com:vincentkfu/fio.git)
 
 rm -rf ${DIR}
-git clone ssh://vincentkfu@git.kernel.dk/data/git/fio.git ${DIR}
+git clone ${CANONICAL} ${DIR}
 cd ${DIR}
 b4 am -o - ${REF} | git am -s --whitespace=fix
 git checkout -b ${BRANCH}
-git push git@github.com:vincentkfu/fio.git ${BRANCH}
+
+for d in ${DEST[@]}; do
+	git push ${d} ${BRANCH}
+done
