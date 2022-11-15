@@ -16,7 +16,6 @@ DIR=fio-${BRANCH}
 CANONICAL=https://github.com/axboe/fio.git
 DEST=(git@github.com:vincentkfu/fio.git)
 
-rm -rf ${DIR}
 git clone ${CANONICAL} ${DIR}
 cd ${DIR}
 b4 am -o - ${REF} | git am -s --whitespace=fix
