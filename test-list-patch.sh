@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 abort() {
 	echo "Error grabbing patch series"
