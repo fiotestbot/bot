@@ -1,11 +1,13 @@
 import os
+import sys
 import sqlite3
-import requests
 import argparse
 import datetime
 import subprocess
 from pathlib import Path
 from bs4 import BeautifulSoup
+
+import requests
 
 DB_FILE="message_ids.sqlite3"
 URL="https://lore.kernel.org/fio/?t=1&q=s%3A%22PATCH%22+AND+NOT+s%3A%22RE%22+AND+dt%3A{0}"
@@ -25,15 +27,15 @@ def parse_args():
     return args
 
 
-def get_ids(since):
+def get_msg_ids(since):
     """Get message IDs from from query."""
 
     query_url = URL.format(since)
-    print(query_url)
+    print("Query URL:", query_url)
     page = requests.get(query_url)
     soup = BeautifulSoup(page.content, "html.parser")
 
-    ids = set()
+    msg_ids = set()
     for link in soup.find_all('a'):
         href = link.get('href')
         if '?' in href:
@@ -52,10 +54,10 @@ def get_ids(since):
         if href[-1] == '/':
             href = href[:-1]
 
-        if href not in ids:
-            ids.add(href)
+        if href not in msg_ids:
+            msg_ids.add(href)
 
-    return ids
+    return msg_ids
 
 
 def create_table(conn):
@@ -77,53 +79,53 @@ def init_db(db_file):
         conn = sqlite3.connect(db_file)
         if create:
             create_table(conn)
-    except Exception as e:
-        print(e)
+    except Exception as error:
+        print("Unable to create database file:", error)
         sys.exit(1)
 
     return conn
 
 
-def id_exists(conn, id):
+def msg_id_exists(conn, msg_id):
     """Check if database contains id."""
 
     sql_check_item = """SELECT EXISTS(SELECT 1 FROM IDS WHERE ID=? COLLATE NOCASE) LIMIT 1"""
 
     cur = conn.cursor()
-    check = cur.execute(sql_check_item, (id,))
+    check = cur.execute(sql_check_item, (msg_id,))
     return check.fetchone()[0] == 1
 
 
-def add_id(conn, id):
+def add_msg_id(conn, msg_id):
     """Add record to the database."""
 
     sql_insert_item = """INSERT OR REPLACE INTO IDS(ID) VALUES(?)"""
 
     cur = conn.cursor()
-    cur.execute(sql_insert_item, (id,))
+    cur.execute(sql_insert_item, (msg_id,))
     conn.commit()
 
 
-def process_ids(id_list, skip_test=False):
+def process_msg_ids(msg_id_list, skip_test=False):
     """Save new message IDs, download corresponding patch series, and initiate testing."""
 
     conn = init_db(DB_FILE)
-    for id in id_list:
-        if id_exists(conn, id):
-            print("skipping {0}".format(id))
+    for msg_id in msg_id_list:
+        if msg_id_exists(conn, msg_id):
+            print("Skipping {0}".format(msg_id))
         else:
-            print("testing {0}".format(id))
+            print("Testing {0}".format(msg_id))
             if skip_test:
-                print("skipping test")
+                print("Skipping test")
             else:
                 try:
-                    with open("{0}.log".format(id), "x") as f:
-                        result = subprocess.run(["./test-list-patch.sh", id, id],
-                                stdout=f, stderr=f, check=True)
+                    with open("{0}.log".format(msg_id), "x") as file:
+                        subprocess.run(["./test-list-patch.sh", msg_id, msg_id],
+                                stdout=file, stderr=file, check=True)
                 except Exception as error:
                     print("Error initiating test:", error)
                 else:
-                    add_id(conn, id)
+                    add_msg_id(conn, msg_id)
 
     conn.close()
 
@@ -137,12 +139,12 @@ def main():
         yesterday = datetime.date.today() - datetime.timedelta(days = 1)
         args.since = [yesterday.strftime("%Y%m%d") + "000000.."]
 
-    ids = get_ids(args.since[0])
+    msg_ids = get_msg_ids(args.since[0])
     if args.query_only:
-        for id in ids:
-            print("found {0}".format(id))
+        for msg_id in msg_ids:
+            print("Found {0}".format(msg_id))
         return
-    process_ids(ids, skip_test=args.skip_test)
+    process_msg_ids(msg_ids, skip_test=args.skip_test)
 
 
 if __name__ == "__main__":
