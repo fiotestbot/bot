@@ -106,12 +106,14 @@ def add_msg_id(conn, msg_id):
     conn.commit()
 
 
-def process_msg_ids(msg_id_list, skip_test=False):
+def process_msg_ids(msg_id_list, query_only=False, skip_test=False):
     """Save new message IDs, download corresponding patch series, and initiate testing."""
 
     conn = init_db(DB_FILE)
     for msg_id in msg_id_list:
-        if msg_id_exists(conn, msg_id):
+        if query_only:
+            print("Found {0}".format(msg_id))
+        elif msg_id_exists(conn, msg_id):
             print("Skipping {0}".format(msg_id))
         else:
             print("Testing {0}".format(msg_id))
@@ -140,11 +142,7 @@ def main():
         args.since = [yesterday.strftime("%Y%m%d") + "000000.."]
 
     msg_ids = get_msg_ids(args.since[0])
-    if args.query_only:
-        for msg_id in msg_ids:
-            print("Found {0}".format(msg_id))
-        return
-    process_msg_ids(msg_ids, skip_test=args.skip_test)
+    process_msg_ids(msg_ids, query_only=args.query_only, skip_test=args.skip_test)
 
 
 if __name__ == "__main__":
