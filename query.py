@@ -129,7 +129,6 @@ def main():
     if not args.since:
         # By default query patches since yesterday
         yesterday = datetime.date.today() - datetime.timedelta(days = 1)
-        print(yesterday)
         args.since = [yesterday.strftime("%Y%m%d") + "000000.."]
 
     ids = get_ids(args.since[0])
