@@ -1,17 +1,36 @@
 import os
 import sqlite3
 import requests
+import argparse
+import datetime
 import subprocess
 from pathlib import Path
 from bs4 import BeautifulSoup
 
 DB_FILE="message_ids.sqlite3"
-URL="https://lore.kernel.org/fio/?t=1&q=s%3A%22PATCH%22+AND+NOT+s%3A%22RE%22+AND+dt%3A20221029165149.."
+URL="https://lore.kernel.org/fio/?t=1&q=s%3A%22PATCH%22+AND+NOT+s%3A%22RE%22+AND+dt%3A{0}"
 
-def get_ids():
+def parse_args():
+    """Parse command-line arguments."""
+
+    parser = argparse.ArgumentParser(description="Query mailing list for new patches and test them")
+    parser.add_argument("-q", "--query-only", action="store_true",
+            help="Query for message IDs only")
+    parser.add_argument("-s", "--skip-test", action="store_true",
+            help="Skip testing (but still store new message IDs)")
+    parser.add_argument("--since", action="store", nargs=1,
+            help="Date range for query; 20221201000000.. for everything since 2022-12-01")
+    args = parser.parse_args()
+
+    return args
+
+
+def get_ids(since):
     """Get message IDs from from query."""
 
-    page = requests.get(URL)
+    query_url = URL.format(since)
+    print(query_url)
+    page = requests.get(query_url)
     soup = BeautifulSoup(page.content, "html.parser")
 
     ids = set()
@@ -85,7 +104,7 @@ def add_id(conn, id):
     conn.commit()
 
 
-def process_ids(id_list):
+def process_ids(id_list, skip_test=False):
     """Save new message IDs, download corresponding patch series, and initiate testing."""
 
     conn = init_db(DB_FILE)
@@ -94,7 +113,10 @@ def process_ids(id_list):
             print("skipping {0}".format(id))
         else:
             print("testing {0}".format(id))
-            subprocess.run(["./test-list-patch.sh", id, id])
+            if skip_test:
+                print("skipping test")
+            else:
+                subprocess.run(["./test-list-patch.sh", id, id])
             add_id(conn, id)
 
     conn.close()
@@ -103,8 +125,19 @@ def process_ids(id_list):
 def main():
     """Entry point."""
 
-    ids = get_ids()
-    process_ids(ids)
+    args = parse_args()
+    if not args.since:
+        # By default query patches since yesterday
+        yesterday = datetime.date.today() - datetime.timedelta(days = 1)
+        print(yesterday)
+        args.since = [yesterday.strftime("%Y%m%d") + "000000.."]
+
+    ids = get_ids(args.since[0])
+    if args.query_only:
+        for id in ids:
+            print("found {0}".format(id))
+        return
+    process_ids(ids, skip_test=args.skip_test)
 
 
 if __name__ == "__main__":
