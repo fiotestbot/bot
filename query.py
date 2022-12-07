@@ -9,8 +9,9 @@ DB_FILE="message_ids.sqlite3"
 URL="https://lore.kernel.org/fio/?t=1&q=s%3A%22PATCH%22+AND+NOT+s%3A%22RE%22+AND+dt%3A20221029165149.."
 
 def get_ids():
-    page = requests.get(URL)
+    """Get message IDs from from query."""
 
+    page = requests.get(URL)
     soup = BeautifulSoup(page.content, "html.parser")
 
     ids = set()
@@ -80,12 +81,13 @@ def add_id(conn, id):
     sql_insert_item = """INSERT OR REPLACE INTO IDS(ID) VALUES(?)"""
 
     cur = conn.cursor()
-
     cur.execute(sql_insert_item, (id,))
     conn.commit()
 
 
 def process_ids(id_list):
+    """Save new message IDs, download corresponding patch series, and initiate testing."""
+
     conn = init_db(DB_FILE)
     for id in id_list:
         if id_exists(conn, id):
