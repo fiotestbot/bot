@@ -116,8 +116,14 @@ def process_ids(id_list, skip_test=False):
             if skip_test:
                 print("skipping test")
             else:
-                subprocess.run(["./test-list-patch.sh", id, id])
-            add_id(conn, id)
+                try:
+                    with open("{0}.log".format(id), "x") as f:
+                        result = subprocess.run(["./test-list-patch.sh", id, id],
+                                stdout=f, stderr=f, check=True)
+                except Exception as error:
+                    print("Error initiating test:", error)
+                else:
+                    add_id(conn, id)
 
     conn.close()
 
