@@ -22,6 +22,7 @@ def parse_args():
             help="Skip testing (but still store new message IDs)")
     parser.add_argument("--since", action="store", nargs=1,
             help="Date range for query; 20221201000000.. for everything since 2022-12-01")
+    parser.add_argument("--db", action="store", help="Specify file for saving message IDs")
     args = parser.parse_args()
 
     return args
@@ -106,7 +107,7 @@ def add_msg_id(conn, msg_id):
     conn.commit()
 
 
-def process_msg_ids(msg_id_list, query_only=False, skip_test=False):
+def process_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=DB_FILE):
     """Save new message IDs, download corresponding patch series, and initiate testing."""
 
     conn = init_db(DB_FILE)
@@ -140,9 +141,11 @@ def main():
         # By default query patches since yesterday
         yesterday = datetime.date.today() - datetime.timedelta(days = 1)
         args.since = [yesterday.strftime("%Y%m%d") + "000000.."]
+    if not args.db:
+        args.db_file = DB_FILE
 
     msg_ids = get_msg_ids(args.since[0])
-    process_msg_ids(msg_ids, query_only=args.query_only, skip_test=args.skip_test)
+    process_msg_ids(msg_ids, query_only=args.query_only, skip_test=args.skip_test, db_file=args.db)
 
 
 if __name__ == "__main__":
