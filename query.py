@@ -123,8 +123,8 @@ def process_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=DB_F
             else:
                 try:
                     with open("{0}.log".format(msg_id), "x") as file:
-                        subprocess.run(["./test-list-patch.sh", msg_id, msg_id],
-                                stdout=file, stderr=file, check=True)
+                        subprocess.run(["./test-list-patch.sh", "autotest/"+msg_id,
+                            msg_id, "--cleanup"], stdout=file, stderr=file, check=True)
                 except Exception as error:
                     print("Error initiating test:", error)
                 else:
@@ -145,7 +145,8 @@ def main():
         args.db_file = DB_FILE
 
     msg_ids = get_msg_ids(args.since)
-    process_msg_ids(msg_ids, query_only=args.query_only, skip_test=args.skip_test, db_file=args.db)
+    process_msg_ids(msg_ids, query_only=args.query_only, skip_test=args.skip_test,
+        db_file=args.db)
 
 
 if __name__ == "__main__":
