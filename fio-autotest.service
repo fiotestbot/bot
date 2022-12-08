@@ -1,0 +1,24 @@
+#
+# Requirements:
+# git clone https://github.com/vincentkfu/fio-maintainer.git /home/vincent/fio-dev/fio-maintainer
+# ssh keys set up for passwordless git push access to targets of test-list-patch.sh
+#
+# mkdir -p ~/.config/systemd/user
+# cp fio-autotest.service ~/.config/systemd/user
+# cp fio-autotest.timer ~/.config/systemd/user
+# systemctl --user enable fio-autotest.service
+# systemctl --user enable fio-autotest.timer
+# systemctl --user start fio-autotest.timer
+#
+
+[Unit]
+Description=Test fio mailing list patches
+ConditionPathExists=/home/vincent/fio-dev/fio-maintainer
+
+[Service]
+WorkingDirectory=/home/vincent/fio-dev/fio-maintainer
+Type=oneshot
+ExecStart=python3 query.py
+
+[Install]
+WantedBy=multi-user.target
