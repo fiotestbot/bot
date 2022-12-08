@@ -72,8 +72,6 @@ def create_table(conn):
 def init_db(db_file):
     """Initialize database."""
 
-    db_file = os.path.join(Path(__file__).absolute().parent, db_file)
-
     conn = None
     try:
         create = not os.path.exists(db_file)
