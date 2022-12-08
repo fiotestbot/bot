@@ -108,7 +108,7 @@ def add_msg_id(conn, msg_id):
 def process_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=DB_FILE):
     """Save new message IDs, download corresponding patch series, and initiate testing."""
 
-    conn = init_db(DB_FILE)
+    conn = init_db(db_file)
     for msg_id in msg_id_list:
         if query_only:
             print("Found {0}".format(msg_id))
