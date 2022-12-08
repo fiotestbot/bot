@@ -6,14 +6,15 @@ abort() {
 	exit 1
 }
 
-if [ "$#" -ne 2 ]; then
-	echo "Usage ${0} branch-name patch-reference"
+if [ "$#" -lt 2 ]; then
+	echo "Usage ${0} branch-name patch-reference [--cleanup]"
 	exit 1
 fi
 
 BRANCH="$1"
 REF="$2"
-DIR=fio-${BRANCH}
+CLEANUP="$3"
+DIR=fio-${REF}
 CANONICAL=https://github.com/axboe/fio.git
 DEST=(git@github.com:vincentkfu/fio.git)
 
@@ -25,3 +26,8 @@ git checkout -b ${BRANCH}
 for d in ${DEST[@]}; do
 	git push ${d} ${BRANCH}
 done
+
+cd ..
+if [ "${CLEANUP}" = "--cleanup" ]; then
+	rm -rf ${DIR}
+fi
