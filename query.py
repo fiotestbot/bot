@@ -28,7 +28,7 @@ def parse_args():
     return args
 
 
-def get_msg_ids(since):
+def query_msg_ids(since):
     """Get message IDs from from query."""
 
     query_url = URL.format(since)
@@ -144,7 +144,7 @@ def main():
     if not args.db:
         args.db_file = DB_FILE
 
-    msg_ids = get_msg_ids(args.since)
+    msg_ids = query_msg_ids(args.since)
     process_msg_ids(msg_ids, query_only=args.query_only, skip_test=args.skip_test,
         db_file=args.db)
 
