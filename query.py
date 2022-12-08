@@ -123,7 +123,7 @@ def main():
         yesterday = datetime.date.today() - datetime.timedelta(days = 1)
         args.since = yesterday.strftime("%Y%m%d") + "000000.."
     if not args.db:
-        args.db = DB_FILE
+        args.db = os.path.join(Path(__file__).absolute().parent, DB_FILE)
 
     msg_ids = query_msg_ids(args.since)
     process_msg_ids(msg_ids, query_only=args.query_only, skip_test=args.skip_test,
