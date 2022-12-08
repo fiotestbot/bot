@@ -9,6 +9,7 @@
 # systemctl --user enable fio-autotest.service
 # systemctl --user enable fio-autotest.timer
 # systemctl --user start fio-autotest.timer
+# loginctl enable-linger vincent	# service fires when user not logged in
 #
 
 [Unit]
@@ -21,4 +22,4 @@ Type=oneshot
 ExecStart=python3 query.py
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
