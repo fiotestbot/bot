@@ -1,6 +1,6 @@
 import os
 import sys
-import sqlite3
+import json
 import argparse
 import datetime
 import subprocess
@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 import requests
 
-DB_FILE="message_ids.sqlite3"
+DB_FILE="message_ids.json"
 URL="https://lore.kernel.org/fio/?t=1&q=s%3A%22PATCH%22+AND+NOT+s%3A%22RE%22+AND+dt%3A{0}"
 
 def parse_args():
@@ -61,58 +61,43 @@ def query_msg_ids(since):
     return msg_ids
 
 
-def create_table(conn):
-    """Create SQLite3 table."""
-
-    sql_create_id_table = """CREATE TABLE IF NOT EXISTS IDS (ID TEXT PRIMARY KEY);"""
-
-    conn.cursor().execute(sql_create_id_table)
-
-
 def init_db(db_file):
     """Initialize database."""
 
-    conn = None
+    if not os.path.exists(db_file):
+        return set()
+
     try:
-        create = not os.path.exists(db_file)
-        conn = sqlite3.connect(db_file)
-        if create:
-            create_table(conn)
+        with open(db_file, "r") as file:
+            tested_msg_ids = set(json.load(file)["message_ids"])
     except Exception as error:
-        print("Unable to create database file:", error)
+        print("Unable to read database file:", error)
         sys.exit(1)
 
-    return conn
+    return tested_msg_ids
 
 
-def msg_id_exists(conn, msg_id):
-    """Check if database contains id."""
-
-    sql_check_item = """SELECT EXISTS(SELECT 1 FROM IDS WHERE ID=? COLLATE NOCASE) LIMIT 1"""
-
-    cur = conn.cursor()
-    check = cur.execute(sql_check_item, (msg_id,))
-    return check.fetchone()[0] == 1
-
-
-def add_msg_id(conn, msg_id):
+def add_msg_id(tested_msg_ids, msg_id, db_file):
     """Add record to the database."""
 
-    sql_insert_item = """INSERT OR REPLACE INTO IDS(ID) VALUES(?)"""
+    tested_msg_ids.add(msg_id)
 
-    cur = conn.cursor()
-    cur.execute(sql_insert_item, (msg_id,))
-    conn.commit()
+    try:
+        with open(db_file, "w") as file:
+            dict = { "message_ids": list(tested_msg_ids) }
+            file.write(json.dumps(dict))
+    except Exception as error:
+        print("Unable to add message ID to database file:", error)
 
 
 def process_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=DB_FILE):
     """Save new message IDs, download corresponding patch series, and initiate testing."""
 
-    conn = init_db(db_file)
+    tested_msg_ids = init_db(db_file)
     for msg_id in msg_id_list:
         if query_only:
             print("Found {0}".format(msg_id))
-        elif msg_id_exists(conn, msg_id):
+        elif msg_id in tested_msg_ids:
             print("Skipping {0}".format(msg_id))
         else:
             print("Testing {0}".format(msg_id))
@@ -126,9 +111,7 @@ def process_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=DB_F
                 except Exception as error:
                     print("Error initiating test:", error)
                 else:
-                    add_msg_id(conn, msg_id)
-
-    conn.close()
+                    add_msg_id(tested_msg_ids, msg_id, db_file)
 
 
 def main():
