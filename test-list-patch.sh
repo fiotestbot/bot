@@ -16,7 +16,7 @@ REF="$2"
 CLEANUP="$3"
 DIR=fio-${REF}
 CANONICAL=https://github.com/axboe/fio.git
-DEST=(git@github.com:vincentkfu/fio.git)
+DEST=(git@github.com:fiotestbot/fio.git)
 
 git clone ${CANONICAL} ${DIR}
 cd ${DIR}
