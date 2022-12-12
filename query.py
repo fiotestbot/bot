@@ -10,7 +10,17 @@ from bs4 import BeautifulSoup
 import requests
 
 DB_FILE="message_ids.json"
-URL="https://lore.kernel.org/fio/?t=1&q=s%3A%22PATCH%22+AND+NOT+s%3A%22RE%22+AND+dt%3A{0}"
+URL="https://lore.kernel.org/fio/?t=1&q=s%3A%22PATCH%22+AND+NOT+s%3A%22RE%3A%22+AND+dt%3A{0}"
+#
+# s:"PATCH" AND NOT s:"RE:" AND dt:{0}
+#
+# This may need more refinement
+#
+# For details see:
+#   https://lore.kernel.org/fio/_/text/help/
+#   https://xapian.org/docs/queryparser.html
+#   https://people.kernel.org/monsieuricon/lore-lei-part-1-getting-started
+#
 
 def parse_args():
     """Parse command-line arguments."""
