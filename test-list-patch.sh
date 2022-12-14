@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-abort() {
-	echo "Error grabbing patch series"
-	exit 1
-}
-
 if [ "$#" -lt 2 ]; then
 	echo "Usage ${0} branch-name patch-reference [--cleanup]"
 	exit 1
