@@ -78,7 +78,7 @@ def init_db(db_file):
         return set()
 
     try:
-        with open(db_file, "r") as file:
+        with open(db_file, "r", encoding="utf-8") as file:
             tested_msg_ids = set(json.load(file)["message_ids"])
     except Exception as error:
         print("Unable to read database file:", error)
@@ -93,9 +93,9 @@ def add_msg_id(tested_msg_ids, msg_id, db_file):
     tested_msg_ids.add(msg_id)
 
     try:
-        with open(db_file, "w") as file:
-            dict = { "message_ids": list(tested_msg_ids) }
-            file.write(json.dumps(dict))
+        with open(db_file, "w", encoding="utf-8") as file:
+            dictionary = { "message_ids": list(tested_msg_ids) }
+            file.write(json.dumps(dictionary))
     except Exception as error:
         print("Unable to add message ID to database file:", error)
 
@@ -106,16 +106,16 @@ def process_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=DB_F
     tested_msg_ids = init_db(db_file)
     for msg_id in msg_id_list:
         if query_only:
-            print("Found {0}".format(msg_id))
+            print(f"Found {msg_id}")
         elif msg_id in tested_msg_ids:
-            print("Skipping {0}".format(msg_id))
+            print(f"Skipping {msg_id}")
         else:
-            print("Testing {0}".format(msg_id))
+            print(f"Testing {msg_id}")
             if skip_test:
                 print("Skipping test")
             else:
                 try:
-                    with open("{0}.log".format(msg_id), "x") as file:
+                    with open(f"{msg_id}.log", "x", encoding="utf-8") as file:
                         subprocess.run(["./test-list-patch.sh", "autotest/"+msg_id,
                             msg_id, "--cleanup"], stdout=file, stderr=file, check=True)
                 except Exception as error:
