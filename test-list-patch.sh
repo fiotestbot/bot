@@ -13,16 +13,16 @@ DIR=fio-${REF}
 CANONICAL=https://github.com/axboe/fio.git
 DEST=(git@github.com:fiotestbot/fio.git)
 
-git clone ${CANONICAL} ${DIR}
-cd ${DIR}
-b4 am -o - ${REF} | git am -s --whitespace=fix
-git checkout -b ${BRANCH}
+git clone ${CANONICAL} "${DIR}"
+cd "${DIR}"
+b4 am -o - "${REF}" | git am -s --whitespace=fix
+git checkout -b "${BRANCH}"
 
-for d in ${DEST[@]}; do
-	git push ${d} ${BRANCH}
+for d in "${DEST[@]}"; do
+	git push "${d}" "${BRANCH}"
 done
 
 cd ..
 if [ "${CLEANUP}" = "--cleanup" ]; then
-	rm -rf ${DIR}
+	rm -rf "${DIR}"
 fi
