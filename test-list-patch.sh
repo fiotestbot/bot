@@ -15,7 +15,7 @@ DEST=(git@github.com:fiotestbot/fio.git)
 
 git clone ${CANONICAL} "${DIR}"
 cd "${DIR}"
-b4 am -o - "${REF}" | git am -s --whitespace=fix
+b4 am -o - "${REF}" | git am --whitespace=fix
 git checkout -b "${BRANCH}"
 
 for d in "${DEST[@]}"; do
