@@ -10,9 +10,9 @@ from bs4 import BeautifulSoup
 import requests
 
 DB_FILE="message_ids.json"
-URL='https://lore.kernel.org/fio/?t=1&q=s%3A[PATCH+AND+NOT+s%3A"re%3A"+AND+dt%3A{0}'
+URL='https://lore.kernel.org/fio/?t=1&q=s%3A[PATCH+AND+NOT+s%3A"re%3A"+AND+rt%3A{0}'
 #
-# s:[PATCH AND NOT s:"RE:" AND dt:{0}
+# s:[PATCH AND NOT s:"RE:" AND rt:{0}
 #
 # This may need more refinement
 #
@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument("-s", "--skip-test", action="store_true",
             help="Skip testing (but still store new message IDs)")
     parser.add_argument("--since", action="store",
-            help="Date range for query; 20221201000000.. for everything since 2022-12-01")
+            help="Date range for query; last.week.. for everything since last week")
     parser.add_argument("--db", action="store", help="Specify file for saving message IDs")
     args = parser.parse_args()
 
@@ -129,9 +129,9 @@ def main():
 
     args = parse_args()
     if not args.since:
-        # By default query patches since yesterday
+        # By default query patches since last week
         yesterday = datetime.date.today() - datetime.timedelta(days = 1)
-        args.since = yesterday.strftime("%Y%m%d") + "000000.."
+        args.since = "last.week.."
     if not args.db:
         args.db = os.path.join(Path(__file__).absolute().parent, DB_FILE)
 
