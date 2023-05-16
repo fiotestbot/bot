@@ -10,9 +10,9 @@ from bs4 import BeautifulSoup
 import requests
 
 DB_FILE="message_ids.json"
-URL='https://lore.kernel.org/fio/?t=1&q=s%3A[PATCH+AND+NOT+s%3A"re%3A"+AND+rt%3A{0}'
+URL='https://lore.kernel.org/fio/?t=1&q=s%3A"[PATCH"+AND+NOT+s%3A"re%3A"+AND+rt%3A{0}'
 #
-# s:[PATCH AND NOT s:"RE:" AND rt:{0}
+# s:"[PATCH" AND NOT s:"RE:" AND rt:{0}
 #
 # This may need more refinement
 #
@@ -107,21 +107,20 @@ def process_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=DB_F
     for msg_id in msg_id_list:
         if query_only:
             print(f"Found {msg_id}")
-        elif msg_id in tested_msg_ids:
+        elif msg_id in tested_msg_ids or skip_test:
             print(f"Skipping {msg_id}")
+            if msg_id not in tested_msg_ids:
+                add_msg_id(tested_msg_ids, msg_id, db_file)
         else:
             print(f"Testing {msg_id}")
-            if skip_test:
-                print("Skipping test")
+            try:
+                with open(f"{msg_id}.log", "x", encoding="utf-8") as file:
+                    subprocess.run(["./test-list-patch.sh", "autotest/"+msg_id,
+                        msg_id, "--cleanup"], stdout=file, stderr=file, check=True)
+            except Exception as error:
+                print("Error initiating test:", error)
             else:
-                try:
-                    with open(f"{msg_id}.log", "x", encoding="utf-8") as file:
-                        subprocess.run(["./test-list-patch.sh", "autotest/"+msg_id,
-                            msg_id, "--cleanup"], stdout=file, stderr=file, check=True)
-                except Exception as error:
-                    print("Error initiating test:", error)
-                else:
-                    add_msg_id(tested_msg_ids, msg_id, db_file)
+                add_msg_id(tested_msg_ids, msg_id, db_file)
 
 
 def main():
