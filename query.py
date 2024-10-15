@@ -42,7 +42,6 @@ def query_msg_ids(since):
     """Get message IDs from from query."""
 
     query_url = URL.format(since)
-    print("Query URL:", query_url)
     page = requests.get(query_url)
     soup = BeautifulSoup(page.content, "html.parser")
 
