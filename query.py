@@ -95,7 +95,7 @@ def add_msg_id(tested_msg_ids, msg_id, db_file):
     try:
         with open(db_file, "w", encoding="utf-8") as file:
             dictionary = { "message_ids": list(tested_msg_ids) }
-            file.write(json.dumps(dictionary))
+            file.write(json.dumps(dictionary, indent=4))
     except Exception as error:
         print("Unable to add message ID to database file:", error)
 
