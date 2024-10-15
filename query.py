@@ -108,8 +108,8 @@ def process_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=DB_F
         if query_only:
             print(f"Found {msg_id}")
         elif msg_id in tested_msg_ids or skip_test:
-            print(f"Skipping {msg_id}")
             if msg_id not in tested_msg_ids:
+                print(msg_id)
                 add_msg_id(tested_msg_ids, msg_id, db_file)
         else:
             print(f"Testing {msg_id}")
