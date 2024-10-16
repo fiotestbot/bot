@@ -3,11 +3,11 @@ import sys
 import json
 import argparse
 import datetime
+import requests
 import subprocess
 from pathlib import Path
 from bs4 import BeautifulSoup
 
-import requests
 
 DB_FILE="message_ids.json"
 URL='https://lore.kernel.org/fio/?t=1&q=s%3A"[PATCH"+AND+NOT+s%3A"re%3A"+AND+rt%3A{0}'
@@ -95,6 +95,11 @@ def add_msg_id(tested_msg_ids, msg_id, db_file):
         with open(db_file, "w", encoding="utf-8") as file:
             dictionary = { "message_ids": list(tested_msg_ids) }
             file.write(json.dumps(dictionary, indent=4))
+            try:
+                subprocess.run(["git", "add", db_file], check=True)
+            except Exception as error:
+                print("Unable to add database file to git:", error)
+
     except Exception as error:
         print("Unable to add message ID to database file:", error)
 
