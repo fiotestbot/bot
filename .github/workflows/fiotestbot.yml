@@ -1,0 +1,66 @@
+name: fiotestbot
+
+on:
+  workflow_dispatch:
+# schedule:
+#   - cron: "* /15 * * *" # every 15 minutes
+
+permissions:
+  contents: write
+
+jobs:
+  query:
+    runs-on: ubuntu-latest
+
+    outputs:
+      msg_ids: ${{ steps.msg_ids.outputs.msg_ids }}
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: git setup
+      run: |
+        git config --global user.email "fiotestbot@users.noreply.github.com"
+        git config --global user.name "fiotestbot"
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install python3-bs4
+
+    - name: Run query to collect message IDs
+      id: msg_ids
+      run: |
+        MSGIDS=$(python3 query.py -s --since 20240915... | jq --raw-input . | jq --slurp .)
+        echo $MSGIDS
+        echo msg_ids=$MSGIDS >> $GITHUB_OUTPUT
+
+    - name: update repository with new message IDs
+      if: ${{ steps.msg_ids.outputs.msg_ids != '[]' }}
+      run: |
+        git commit -m "update message IDs"
+        git push
+
+  runtests:
+    needs: query
+    runs-on: ubuntu-latest
+    if: ${{ needs.query.outputs.msg_ids != '[]' }}
+
+    strategy:
+      matrix:
+        msg_id: ${{fromJson(needs.query.outputs.msg_ids)}}
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: git setup
+      run: |
+        git config --global user.email "fiotestbot@users.noreply.github.com"
+        git config --global user.name "fiotestbot"
+
+    - name: create a new branch and push it
+      if: ${{ matrix.msg_id }}
+      run: |
+        echo ${{ matrix.msg_id }}
