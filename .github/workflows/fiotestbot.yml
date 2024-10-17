@@ -54,13 +54,33 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v4
+      with:
+        repository: axboe/fio
+        ref: aa665180df233e10ed9a616702d881448d81651b
+        fetch-depth: 0
+        ssh-key: ${{ secrets.SSH_KEY }}
+#
+# TODO change ref to master when running this for real
+#
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install b4
 
     - name: git setup
       run: |
         git config --global user.email "fiotestbot@users.noreply.github.com"
         git config --global user.name "fiotestbot"
+        git remote set-url origin git@github.com:fiotestbot/fio.git
+#
+# Create token: Settings->Developer settings->Personal access tokens->Generate new token
+# Set secret: Settings->Secrets and variables->Actions->New repository secret
+#
 
-    - name: create a new branch and push it
-      if: ${{ matrix.msg_id }}
+    - name: Create a new branch and push it
       run: |
         echo ${{ matrix.msg_id }}
+        git checkout -b test-${{ matrix.msg_id }}
+        b4 am -3 -o - "${{ matrix.msg_id }}" | git am --whitespace=fix
+        git push origin test-${{ matrix.msg_id }}
