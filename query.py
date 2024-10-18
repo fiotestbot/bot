@@ -78,7 +78,7 @@ def init_db(db_file):
 
     try:
         with open(db_file, "r", encoding="utf-8") as file:
-            tested_msg_ids = set(json.load(file)["message_ids"])
+            tested_msg_ids = list(json.load(file)["message_ids"])
     except Exception as error:
         print("Unable to read database file:", error)
         sys.exit(1)
@@ -89,11 +89,11 @@ def init_db(db_file):
 def add_msg_id(tested_msg_ids, msg_id, db_file):
     """Add record to the database."""
 
-    tested_msg_ids.add(msg_id)
+    tested_msg_ids.append(msg_id)
 
     try:
         with open(db_file, "w", encoding="utf-8") as file:
-            dictionary = { "message_ids": list(tested_msg_ids) }
+            dictionary = { "message_ids": sorted(tested_msg_ids) }
             file.write(json.dumps(dictionary, indent=4))
             try:
                 subprocess.run(["git", "add", db_file], check=True)
