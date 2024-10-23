@@ -104,7 +104,7 @@ def add_msg_id(tested_msg_ids, msg_id, db_file):
         print("Unable to add message ID to database file:", error)
 
 
-def process_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=TESTED_DB):
+def test_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=TESTED_DB):
     """Save new message IDs, download corresponding patch series, and initiate testing."""
 
     tested_msg_ids = init_db(db_file)
@@ -139,7 +139,7 @@ def main():
         args.db = os.path.join(Path(__file__).absolute().parent, TESTED_DB)
 
     msg_ids = query_msg_ids(args.since)
-    process_msg_ids(msg_ids, query_only=args.query_only, skip_test=args.skip_test,
+    test_msg_ids(msg_ids, query_only=args.query_only, skip_test=args.skip_test,
         db_file=args.db)
 
 
