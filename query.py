@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 import requests
 
-DB_FILE="message_ids.json"
+TESTED_DB="message_ids.json"
 URL='https://lore.kernel.org/fio/?t=1&q=s%3A"[PATCH"+AND+NOT+s%3A"re%3A"+AND+d%3A{0}'
 #
 # s:"[PATCH" AND NOT s:"RE:" AND d:{0}
@@ -104,7 +104,7 @@ def add_msg_id(tested_msg_ids, msg_id, db_file):
         print("Unable to add message ID to database file:", error)
 
 
-def process_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=DB_FILE):
+def process_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=TESTED_DB):
     """Save new message IDs, download corresponding patch series, and initiate testing."""
 
     tested_msg_ids = init_db(db_file)
@@ -136,7 +136,7 @@ def main():
         yesterday = datetime.date.today() - datetime.timedelta(days = 1)
         args.since = "last.week.."
     if not args.db:
-        args.db = os.path.join(Path(__file__).absolute().parent, DB_FILE)
+        args.db = os.path.join(Path(__file__).absolute().parent, TESTED_DB)
 
     msg_ids = query_msg_ids(args.since)
     process_msg_ids(msg_ids, query_only=args.query_only, skip_test=args.skip_test,
