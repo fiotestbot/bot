@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install python3-bs4
+        sudo apt install python3-bs4 python3-github
 
     - name: Run query to collect message IDs
       id: msg_ids
@@ -35,12 +35,19 @@ jobs:
         MSGIDS=$(python3 query.py -s --since 20240915... | jq --raw-input . | jq --slurp .)
         echo $MSGIDS
         echo msg_ids=$MSGIDS >> $GITHUB_OUTPUT
+#
+# TODO get rid of since above when deploying this for real
+#
 
     - name: update repository with new message IDs
       if: ${{ steps.msg_ids.outputs.msg_ids != '[]' }}
       run: |
         git commit -m "update message IDs"
         git push
+
+    - name: check for complete GitHub Actions
+      run: |
+        python3 query.py --notify
 
   runtests:
     needs: query

@@ -4,11 +4,14 @@ import json
 import argparse
 import datetime
 import subprocess
+from github import Github
+from github import Auth
 from pathlib import Path
 from bs4 import BeautifulSoup
 
 import requests
 
+NOTIFIED_DB="notified.json"
 TESTED_DB="message_ids.json"
 URL='https://lore.kernel.org/fio/?t=1&q=s%3A"[PATCH"+AND+NOT+s%3A"re%3A"+AND+d%3A{0}'
 #
@@ -33,6 +36,7 @@ def parse_args():
     parser.add_argument("--since", action="store",
             help="Date range for query; last.week.. for everything since last week")
     parser.add_argument("--db", action="store", help="Specify file for saving message IDs")
+    parser.add_argument("-n", "--notify", action="store_true", help="Send notifications regarding completed tests")
     args = parser.parse_args()
 
     return args
@@ -74,7 +78,7 @@ def init_db(db_file):
     """Initialize database."""
 
     if not os.path.exists(db_file):
-        return set()
+        return list()
 
     try:
         with open(db_file, "r", encoding="utf-8") as file:
@@ -127,6 +131,61 @@ def test_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=TESTED_
                 add_msg_id(tested_msg_ids, msg_id, db_file)
 
 
+def get_workflow(token, branch):
+    """Get GitHub Actions workflow."""
+
+    auth = Auth.Token(token)
+    g = Github(auth=auth)
+    repo = g.get_repo("fiotestbot/fio")
+    workflow_runs = repo.get_workflow_runs(branch=branch)
+    count = workflow_runs.totalCount
+    g.close()
+
+    if count == 0:
+        return None
+
+    return workflow_runs[count-1]   # Get the most recent workflow
+
+
+def msg_id2branch(msg_id):
+    """Convert message ID to branch name."""
+
+    return f"test-{msg_id}"
+
+
+def branch2msg_id(branch):
+    """Convert branch name to message ID."""
+
+    return branch.replace("test-", "")
+
+
+def notify_msg_ids(msg_id_list, query_only=False, db_file=NOTIFIED_DB):
+    """Scan for completed tests and send email messages with results."""
+
+    notified_msg_ids = init_db(db_file)
+    token = os.environ.get("GITHUB_PAT")
+    for msg_id in msg_id_list:
+        print(msg_id)
+        branch = msg_id2branch(msg_id)
+        if msg_id in notified_msg_ids:
+            print("Already notified")
+            continue
+        workflow = get_workflow(token, branch)
+        if workflow:
+            print(branch, workflow.conclusion)
+            if not query_only:
+                print("Send notification here")
+                add_msg_id(notified_msg_ids, msg_id, db_file)
+                try:
+                    subprocess.run(["git", "add", db_file], check=True)
+                    subprocess.run(["git", "commit", "-m", f"Add {branch} to notified database"], check=True)
+                    subprocess.run(["git", "push"], check=True)
+                except Exception as error:
+                    print("Unable to add database file to git:", error)
+        else:
+            print("No workflow found")
+
+
 def main():
     """Entry point."""
 
@@ -136,11 +195,17 @@ def main():
         yesterday = datetime.date.today() - datetime.timedelta(days = 1)
         args.since = "last.week.."
     if not args.db:
-        args.db = os.path.join(Path(__file__).absolute().parent, TESTED_DB)
+        if args.notify:
+            args.db = os.path.join(Path(__file__).absolute().parent, NOTIFIED_DB)
+        else:
+            args.db = os.path.join(Path(__file__).absolute().parent, TESTED_DB)
 
     msg_ids = query_msg_ids(args.since)
-    test_msg_ids(msg_ids, query_only=args.query_only, skip_test=args.skip_test,
-        db_file=args.db)
+    if args.notify:
+        notify_msg_ids(msg_ids, query_only=args.query_only, db_file=args.db)
+    else:
+        test_msg_ids(msg_ids, query_only=args.query_only,
+            skip_test=args.skip_test, db_file=args.db)
 
 
 if __name__ == "__main__":
