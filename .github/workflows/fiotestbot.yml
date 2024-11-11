@@ -46,8 +46,18 @@ jobs:
         git push
 
     - name: check for complete GitHub Actions
+      env:
+        GITHUB_PAT: ${{ secrets.PAT }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+#
+# 1. Create a token: Settings->Developer settings->Personal access tokens->Generate new token
+# 2. Set GitHub Actions secret: Settings->Secrets and variables->Actions->New repository secret
+#
       run: |
-        python3 query.py --notify
+        python3 query.py --notify -s --since 20240915...  
+#
+# TODO get rid of since above when deploying this for real
+#
 
   runtests:
     needs: query
@@ -80,10 +90,6 @@ jobs:
         git config --global user.email "fiotestbot@users.noreply.github.com"
         git config --global user.name "fiotestbot"
         git remote set-url origin git@github.com:fiotestbot/fio.git
-#
-# Create token: Settings->Developer settings->Personal access tokens->Generate new token
-# Set secret: Settings->Secrets and variables->Actions->New repository secret
-#
 
     - name: Create a new branch and push it
       run: |

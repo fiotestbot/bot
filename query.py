@@ -1,13 +1,18 @@
 import os
 import sys
+import ssl
 import json
+import email
+import smtplib
 import argparse
 import datetime
 import subprocess
 from github import Github
-from github import Auth
 from pathlib import Path
 from bs4 import BeautifulSoup
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
 
 import requests
 
@@ -134,12 +139,10 @@ def test_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=TESTED_
 def get_workflow(token, branch):
     """Get GitHub Actions workflow."""
 
-    auth = Auth.Token(token)
-    g = Github(auth=auth)
+    g = Github(token)
     repo = g.get_repo("fiotestbot/fio")
     workflow_runs = repo.get_workflow_runs(branch=branch)
     count = workflow_runs.totalCount
-    g.close()
 
     if count == 0:
         return None
@@ -159,6 +162,52 @@ def branch2msg_id(branch):
     return branch.replace("test-", "")
 
 
+def get_subject(msg_id):
+    """Get email subject."""
+
+    page = requests.get(f"https://lore.kernel.org/fio/{msg_id}/")
+    soup = BeautifulSoup(page.content, "html.parser")
+
+    subject = "fio CI test result"
+    for line in soup.body.get_text().split("\n"):
+        if line.startswith("Subject: "):
+            subject = line.replace("Subject: ", "")
+            break
+
+    return subject
+
+
+def send_email(outcome, url, msg_id):
+    """Send email message."""
+
+#
+# TODO change recipient_email to mailing list when deploying for real
+#
+    port = 465
+    smtp_server = "smtp.gmail.com"
+    user_email = "fiotestbot@gmail.com"
+    user_password = os.environ.get("EMAIL_PASSWORD")
+    recipient_email = "vincentfu@gmail.com"
+    body = f"""
+The result of fio's continuous integration tests was: {outcome}
+
+For more details see {url}
+"""
+    msg = MIMEMultipart()
+    msg["From"] = user_email
+    msg["To"] = recipient_email
+    msg["Subject"] = Header("Re: " + get_subject(msg_id), "utf-8")
+    msg["In-Reply-To"] = "<" + msg_id + ">"
+    msg["References"] = "<" + msg_id + ">"
+    msg["Message-ID"] = email.utils.make_msgid()
+    msg.attach(MIMEText(body, "plain"))
+    email_body = msg.as_string()
+
+    with smtplib.SMTP_SSL(smtp_server, port) as server:
+        server.login(user_email, user_password)
+        server.sendmail(user_email, recipient_email, email_body)
+ 
+
 def notify_msg_ids(msg_id_list, query_only=False, db_file=NOTIFIED_DB):
     """Scan for completed tests and send email messages with results."""
 
@@ -174,7 +223,7 @@ def notify_msg_ids(msg_id_list, query_only=False, db_file=NOTIFIED_DB):
         if workflow:
             print(branch, workflow.conclusion)
             if not query_only:
-                print("Send notification here")
+                send_email(workflow.conclusion, workflow.html_url, msg_id)
                 add_msg_id(notified_msg_ids, msg_id, db_file)
                 try:
                     subprocess.run(["git", "add", db_file], check=True)
