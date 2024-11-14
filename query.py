@@ -10,9 +10,9 @@ from bs4 import BeautifulSoup
 import requests
 
 DB_FILE="message_ids.json"
-URL='https://lore.kernel.org/fio/?t=1&q=s%3A"[PATCH"+AND+NOT+s%3A"re%3A"+AND+rt%3A{0}'
+URL='https://lore.kernel.org/fio/?t=1&q=s%3A"[PATCH"+AND+NOT+s%3A"re%3A"+AND+d%3A{0}'
 #
-# s:"[PATCH" AND NOT s:"RE:" AND rt:{0}
+# s:"[PATCH" AND NOT s:"RE:" AND d:{0}
 #
 # This may need more refinement
 #
