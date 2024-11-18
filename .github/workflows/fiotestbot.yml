@@ -32,7 +32,7 @@ jobs:
     - name: Run query to collect message IDs
       id: msg_ids
       run: |
-        MSGIDS=$(python3 query.py -s --since 20240915... | jq --raw-input . | jq --slurp .)
+        MSGIDS=$(python3 query.py --since 20240915... | jq --raw-input . | jq --slurp .)
         echo $MSGIDS
         echo msg_ids=$MSGIDS >> $GITHUB_OUTPUT
 #
@@ -54,7 +54,7 @@ jobs:
 # 2. Set GitHub Actions secret: Settings->Secrets and variables->Actions->New repository secret
 #
       run: |
-        python3 query.py --notify -s --since 20240915...  
+        python3 query.py --notify --since 20240915...  
 #
 # TODO get rid of since above when deploying this for real
 #

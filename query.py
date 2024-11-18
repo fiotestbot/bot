@@ -36,8 +36,6 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Query mailing list for new patches and test them")
     parser.add_argument("-q", "--query-only", action="store_true",
             help="Query for message IDs only")
-    parser.add_argument("-s", "--skip-test", action="store_true",
-            help="Skip testing (but still store new message IDs)")
     parser.add_argument("--since", action="store",
             help="Date range for query; last.week.. for everything since last week")
     parser.add_argument("--db", action="store", help="Specify file for saving message IDs")
@@ -113,27 +111,16 @@ def add_msg_id(tested_msg_ids, msg_id, db_file):
         print("Unable to add message ID to database file:", error)
 
 
-def test_msg_ids(msg_id_list, query_only=False, skip_test=False, db_file=TESTED_DB):
-    """Save new message IDs, download corresponding patch series, and initiate testing."""
+def test_msg_ids(msg_id_list, query_only=False, db_file=TESTED_DB):
+    """Save new message IDs and emit them."""
 
     tested_msg_ids = init_db(db_file)
     for msg_id in msg_id_list:
         if query_only:
-            print(f"Found {msg_id}")
-        elif msg_id in tested_msg_ids or skip_test:
-            if msg_id not in tested_msg_ids:
-                print(msg_id)
-                add_msg_id(tested_msg_ids, msg_id, db_file)
-        else:
-            print(f"Testing {msg_id}")
-            try:
-                with open(f"{msg_id}.log", "x", encoding="utf-8") as file:
-                    subprocess.run(["./test-list-patch.sh", "autotest/"+msg_id,
-                        msg_id, "--cleanup"], stdout=file, stderr=file, check=True)
-            except Exception as error:
-                print("Error initiating test:", error)
-            else:
-                add_msg_id(tested_msg_ids, msg_id, db_file)
+            print(msg_id)
+        elif msg_id not in tested_msg_ids:
+            print(msg_id)
+            add_msg_id(tested_msg_ids, msg_id, db_file)
 
 
 def get_workflow(token, branch):
@@ -253,8 +240,7 @@ def main():
     if args.notify:
         notify_msg_ids(msg_ids, query_only=args.query_only, db_file=args.db)
     else:
-        test_msg_ids(msg_ids, query_only=args.query_only,
-            skip_test=args.skip_test, db_file=args.db)
+        test_msg_ids(msg_ids, query_only=args.query_only, db_file=args.db)
 
 
 if __name__ == "__main__":
