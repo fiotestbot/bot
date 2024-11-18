@@ -1,20 +1,18 @@
 import os
 import sys
-import ssl
 import json
 import email
 import smtplib
 import argparse
-import datetime
-import requests
 import subprocess
-from github import Github
 from pathlib import Path
-from bs4 import BeautifulSoup
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
 
+import requests
+from github import Github
+from bs4 import BeautifulSoup
 
 NOTIFIED_DB="notified.json"
 TESTED_DB="message_ids.json"
@@ -39,7 +37,8 @@ def parse_args():
     parser.add_argument("--since", action="store",
             help="Date range for query; last.week.. for everything since last week")
     parser.add_argument("--db", action="store", help="Specify file for saving message IDs")
-    parser.add_argument("-n", "--notify", action="store_true", help="Send notifications regarding completed tests")
+    parser.add_argument("-n", "--notify", action="store_true",
+                        help="Send notifications regarding completed tests")
     args = parser.parse_args()
 
     return args
@@ -81,7 +80,7 @@ def init_db(db_file):
     """Initialize database."""
 
     if not os.path.exists(db_file):
-        return list()
+        return []
 
     try:
         with open(db_file, "r", encoding="utf-8") as file:
@@ -193,7 +192,7 @@ For more details see {url}
     with smtplib.SMTP_SSL(smtp_server, port) as server:
         server.login(user_email, user_password)
         server.sendmail(user_email, recipient_email, email_body)
- 
+
 
 def notify_msg_ids(msg_id_list, query_only=False, db_file=NOTIFIED_DB):
     """Scan for completed tests and send email messages with results."""
@@ -214,7 +213,8 @@ def notify_msg_ids(msg_id_list, query_only=False, db_file=NOTIFIED_DB):
                 add_msg_id(notified_msg_ids, msg_id, db_file)
                 try:
                     subprocess.run(["git", "add", db_file], check=True)
-                    subprocess.run(["git", "commit", "-m", f"Add {branch} to notified database"], check=True)
+                    subprocess.run(["git", "commit", "-m", f"Add {branch} to notified database"],
+                                   check=True)
                     subprocess.run(["git", "push"], check=True)
                 except Exception as error:
                     print("Unable to add database file to git:", error)
@@ -228,7 +228,6 @@ def main():
     args = parse_args()
     if not args.since:
         # By default query patches since last week
-        yesterday = datetime.date.today() - datetime.timedelta(days = 1)
         args.since = "last.week.."
     if not args.db:
         if args.notify:
