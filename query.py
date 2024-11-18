@@ -6,6 +6,7 @@ import email
 import smtplib
 import argparse
 import datetime
+import requests
 import subprocess
 from github import Github
 from pathlib import Path
@@ -14,7 +15,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
 
-import requests
 
 NOTIFIED_DB="notified.json"
 TESTED_DB="message_ids.json"
