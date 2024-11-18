@@ -94,6 +94,6 @@ jobs:
     - name: Create a new branch and push it
       run: |
         echo ${{ matrix.msg_id }}
-        git checkout -b test-${{ matrix.msg_id }}
+        git checkout -b fiotestbot-${{ matrix.msg_id }}
         b4 am -3 -o - "${{ matrix.msg_id }}" | git am --whitespace=fix
-        git push origin test-${{ matrix.msg_id }}
+        git push origin fiotestbot-${{ matrix.msg_id }}

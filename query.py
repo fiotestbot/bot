@@ -139,13 +139,13 @@ def get_workflow(token, branch):
 def msg_id2branch(msg_id):
     """Convert message ID to branch name."""
 
-    return f"test-{msg_id}"
+    return f"fiotestbot-{msg_id}"
 
 
 def branch2msg_id(branch):
     """Convert branch name to message ID."""
 
-    return branch.replace("test-", "")
+    return branch.replace("fiotestbot-", "")
 
 
 def get_subject(msg_id):
