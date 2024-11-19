@@ -32,12 +32,9 @@ jobs:
     - name: Run query to collect message IDs
       id: msg_ids
       run: |
-        MSGIDS=$(python3 query.py --since 20240915... | jq --raw-input . | jq --slurp .)
+        MSGIDS=$(python3 query.py | jq --raw-input . | jq --slurp .)
         echo $MSGIDS
         echo msg_ids=$MSGIDS >> $GITHUB_OUTPUT
-#
-# TODO get rid of since above when deploying this for real
-#
 
     - name: update repository with new message IDs
       if: ${{ steps.msg_ids.outputs.msg_ids != '[]' }}
@@ -54,10 +51,7 @@ jobs:
 # 2. Set GitHub Actions secret: Settings->Secrets and variables->Actions->New repository secret
 #
       run: |
-        python3 query.py --notify --since 20240915...  
-#
-# TODO get rid of since above when deploying this for real
-#
+        python3 query.py --notify
 
   runtests:
     needs: query
@@ -73,12 +67,9 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: axboe/fio
-        ref: aa665180df233e10ed9a616702d881448d81651b
+        ref: master
         fetch-depth: 0
         ssh-key: ${{ secrets.SSH_KEY }}
-#
-# TODO change ref to master when running this for real
-#
 
     - name: Install dependencies
       run: |
