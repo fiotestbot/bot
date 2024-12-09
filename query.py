@@ -166,14 +166,11 @@ def get_subject(msg_id):
 def send_email(outcome, url, msg_id):
     """Send email message."""
 
-#
-# TODO change recipient_email to mailing list when deploying for real
-#
     port = 465
     smtp_server = "smtp.gmail.com"
     user_email = "fiotestbot@gmail.com"
     user_password = os.environ.get("EMAIL_PASSWORD")
-    recipient_email = "vincentfu@gmail.com"
+    recipient_email = "fio@vger.kernel.org"
     body = f"""
 The result of fio's continuous integration tests was: {outcome}
 
