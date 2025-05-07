@@ -205,7 +205,7 @@ def notify_msg_ids(msg_id_list, query_only=False, db_file=NOTIFIED_DB):
             print("Already notified")
             continue
         workflow = get_workflow(token, branch)
-        if workflow:
+        if workflow and workflow.conclusion:
             print(branch, workflow.conclusion)
             if not query_only:
                 send_email(workflow.conclusion, workflow.html_url, msg_id)
@@ -218,7 +218,7 @@ def notify_msg_ids(msg_id_list, query_only=False, db_file=NOTIFIED_DB):
                 except Exception as error:
                     print("Unable to add database file to git:", error)
         else:
-            print("No workflow found")
+            print("No workflow found or no conclusion yet")
 
 
 def main():
