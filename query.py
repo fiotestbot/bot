@@ -47,8 +47,10 @@ def parse_args():
 def query_msg_ids(since):
     """Get message IDs from from query."""
 
+    headers = {'User-Agent': 'Lynx/2.8.8dev.3 libwww-FM/2.14 SSL-MM/1.4.1'}
+
     query_url = URL.format(since)
-    page = requests.get(query_url)
+    page = requests.get(query_url, headers=headers)
     soup = BeautifulSoup(page.content, "html.parser")
 
     msg_ids = set()
