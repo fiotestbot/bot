@@ -44,13 +44,13 @@ def parse_args():
     return args
 
 
+HEADERS = {'User-Agent': 'Lynx/2.8.8dev.3 libwww-FM/2.14 SSL-MM/1.4.1'}
+
 def query_msg_ids(since):
     """Get message IDs from from query."""
 
-    headers = {'User-Agent': 'Lynx/2.8.8dev.3 libwww-FM/2.14 SSL-MM/1.4.1'}
-
     query_url = URL.format(since)
-    page = requests.get(query_url, headers=headers)
+    page = requests.get(query_url, headers=HEADERS)
     soup = BeautifulSoup(page.content, "html.parser")
 
     msg_ids = set()
@@ -153,7 +153,7 @@ def branch2msg_id(branch):
 def get_subject(msg_id):
     """Get email subject."""
 
-    page = requests.get(f"https://lore.kernel.org/fio/{msg_id}/")
+    page = requests.get(f"https://lore.kernel.org/fio/{msg_id}/", headers=HEADERS)
     soup = BeautifulSoup(page.content, "html.parser")
 
     subject = "fio CI test result"
