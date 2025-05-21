@@ -60,7 +60,7 @@ def query_msg_ids(since):
             continue
         if '@' not in href:
             continue
-        split = href.split('-')
+        split = href.split('-', 2)
         if len(split) == 3:
             split[1] = "1"
             href = "-".join(split)
