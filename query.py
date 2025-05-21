@@ -44,7 +44,7 @@ def parse_args():
     return args
 
 
-HEADERS = {'User-Agent': 'Lynx/2.8.8dev.3 libwww-FM/2.14 SSL-MM/1.4.1'}
+HEADERS = {'User-Agent': 'fiotest 0.0.1 (github.com/fiotest)'}
 
 def query_msg_ids(since):
     """Get message IDs from from query."""
