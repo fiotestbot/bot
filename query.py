@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 
 NOTIFIED_DB="notified.json"
 TESTED_DB="message_ids.json"
-URL='https://lore.kernel.org/fio/?q=%28s%3A%22%5BPATCH%22+OR+s%3A%22%5BRFC%22%29+AND+NOT+s%3A%22re%3A%22+AND+d%3A{0}'
+URL='https://lore.kernel.org/fio/?q=%28s%3Apatch+OR+s%3Apatchv2+OR+s%3Apatchv3+OR+s%3Apatchv4%29+AND+NOT+s%3A%22re%3A%22+AND+d%3A{0}'
 #
 # (s:"[PATCH" OR s:"[RFC") AND NOT s:"RE:" AND d:{0}
 #
